@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,300i,400,500,700,700i&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/main.css" />
+    <title>Chat</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="wrapper">
+        <h1>Anonymous Chat</h1>
+
+        <ul id="chatBox">
+          <li v-for="message in messages">
+            {{ message }}
+          </li>
+        </ul>
+        <form @submit.prevent="sendMessage">
+          <input
+            type="text"
+            placeholder="Your Message.."
+            v-model:value="message"
+          />
+          <input type="submit" value="send" name="" id="" />
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      var socket = null;
+
+      var app = new Vue({
+        el: "#app",
+        data: { message: "", messages: [] },
+        created: function() {
+          socket = io();
+        },
+        methods: {
+          sendMessage() {
+            socket.emit("message", this.message);
+            this.message = "";
+          }
+        },
+        mounted() {
+          socket.on("message", function(msg) {
+            app.messages.push(msg);
+            app.$nextTick(function() {
+              var messageBox = document.getElementById("chatBox");
+              messageBox.scrollTop = messageBox.scrollHeight;
+            });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
