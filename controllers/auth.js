@@ -22,7 +22,7 @@ exports.signUp = async (req, res, next) => {
       // profilePicture: image
     });
     // await user.save();
-      return res.status(201).json({ message: "User Created", userId: user._id });
+    return res.status(201).json({ message: "User Created", userId: user._id });
   } catch (error) {
     if (!error.statusCode) {
       return (error.statusCode = 500);
@@ -33,11 +33,27 @@ exports.signUp = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   const { email, password } = req.body;
+
   try {
-
-    const user = await User.findOne({ email: email });
-
-    if (!user) return res.status(404).json({ message: 'Email or password not correct!' });
+    //     const hashedPassword = await bcrypt.hash(password, 12);
+    // console.log(hashedPassword)
+    //     const newUser = new User({
+    //       name: 'Abelrahman',
+    //       email: email,
+    //       password: hashedPassword,
+    //       chats: [],
+    //       online: false,
+    //       friends:[],
+    //       requests:[],
+    //       panding_requests:[],
+    //       bio:'Available',
+    //       image:''
+    //       // profilePicture: image
+    //     });
+    //     await newUser.save();
+    //     console.log(newUser)
+    const user = await User.findOne({email:email});
+    if (!user) return res.status(404).json({ message: 'Email or password not correct!!' });
 
     const isEqual = await bcrypt.compare(password, user.password);
 
@@ -59,6 +75,7 @@ exports.login = async (req, res, next) => {
     req.isLoggedIn = true;
     return await res.status(200).json({ token: token, user: user });
   } catch (error) {
+    console.log(error)
     return res
       .status(500)
       .json({ message: 'Something went wrong' });

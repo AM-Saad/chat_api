@@ -22,20 +22,41 @@ exports.me = async (req, res, next) => {
 
 
 exports.update_info = async (req, res, next) => {
-    const { email, name } = req.body
+    try {
+        const values = req.body.values
+        let query = {}
+        values.forEach(i => {
+        const vals = Object.values(i)
+        const keys = Object.keys(i)
+            if(!query.hasOwnProperty(keys[0])) {
+                query[keys[0]] = vals[0]
+            }
+        })
+        await User.findOneAndUpdate({ _id: req.user.id }, { $set: query })
+
+        return res.status(200).json({ message: 'Updated', messageType: 'success' })
+
+    } catch (error) {
+        if (!error.statusCode) {
+            error.statusCode = 500;
+        }
+        next(error);
+    }
+
+}
+
+
+exports.change_image = async (req, res, next) => {
     try {
         const user = await User.findOne({ _id: req.user.id })
         if (!user) return res.status(404).json({ message: 'Something went worng, Re-login please', messageType: 'alert' })
 
 
-        if (!email || !name) return res.status(401).json({ message: 'Email and name are required', messageType: 'alert' })
         const image = req.files[0] ? req.files[0].path.replace("\\", "/") : user.image
-        user.email = email
-        user.name = name
         user.image = image
         await user.save()
 
-        return res.status(200).json({ message: 'Updated', messageType: 'success', user: user })
+        return res.status(200).json({ message: 'Updated', messageType: 'success', image: image })
 
     } catch (error) {
         if (!error.statusCode) {
@@ -91,8 +112,8 @@ exports.friends = async (req, res, next) => {
         // newUS.friends.push('60a5b1c1f5454524c44df5a6')
         // await newUS.save()
 
-        // const all = await User.find()
-        // console.log(all);
+        const all = await Chat.find()
+        console.log(all);
 
         const user = await User.findOne({ _id: req.user.id });
         // await Chat.deleteMany({})
@@ -116,6 +137,7 @@ exports.friends = async (req, res, next) => {
             online: r.id.online,
             new: 0,
             image: r.id.image,
+            visible:true,
         }))
         for (const [index, f] of mappedFriends.entries()) {
             const chat = await Chat.findOne({ chatNumber: f.chatNumber })
@@ -138,8 +160,8 @@ exports.search = async (req, res, next) => {
         if (searchValue) {
             var regxValue = new RegExp(searchValue, "i");
             users = await User.find({ $or: [{ name: regxValue }, { email: regxValue }, { mobile: regxValue }] })
-            return res.status(200).json({ users: users })
         }
+        return res.status(200).json({ users: users })
     } catch (error) {
         if (!error.statusCode) {
             error.statusCode = 500;
@@ -229,18 +251,21 @@ exports.accept_request = async (req, res, next) => {
 
         let chat = new Chat({ conversation: [], userone: req.user.id, usertwo: id })
         await chat.save()
+        console.log(chat)
+
         receiver.friends.push({ id: id, chatNumber: chat.chatNumber })
-        await receiver.save()
 
         sender.friends.push({ id: receiver._id, chatNumber: chat.chatNumber })
 
         //remove from panding requests
         sender.panding_requests = sender.panding_requests.filter(i => i.toString() != receiver._id.toString())
         await sender.save()
+        await receiver.save()
 
 
         const newFriend = {
             chatNumber: chat.chatNumber,
+            chat:chat,
             name: sender.name,
             _id: sender._id,
             typing: false,
@@ -254,6 +279,7 @@ exports.accept_request = async (req, res, next) => {
         return res.status(200).json({ message: "Yaay, you'er friends now.", messageType: 'success', friendArray: friendtoArray })
 
     } catch (error) {
+        console.log(error)
         if (!error.statusCode) {
             error.statusCode = 500;
         }
@@ -329,7 +355,7 @@ exports.remove_chat = async (req, res, next) => {
     try {
         const chat = await Chat.findOne({ chatNumber: id })
         chat.conversation = []
-        // await chat.save()
+        await chat.save()
         return res.status(200).json({ message: "Chat delete", messageType: 'success' })
 
     } catch (error) {

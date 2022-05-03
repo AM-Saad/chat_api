@@ -18,7 +18,7 @@ var http = require('http').Server(app);
 
 
 
-const MONGODBURI = `mongodb+srv://abdelrhman:ingodwetrust@onlineshop-zsiuv.mongodb.net/vue-chat`;
+const MONGODBURI = `mongodb+srv://abdelrhman:ingodwetrust@onlineshop-zsiuv.mongodb.net/vue-chat-new`;
 
 const store = new MongoDBStore({
   uri: MONGODBURI,
@@ -63,17 +63,6 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(cors());
 
-// app.use((req, res, next) => {
-//   res.setHeader('Service-Worker-Allowed', '/');
-
-//   res.setHeader('Access-Control-Allow-Origin', '*');
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, application/json');
-//   next();
-// });
-// app.use(cors()) // Use this after the variable declaration
-
-
 const io = require("./socket").init(http);
 
 
@@ -82,20 +71,6 @@ let activeRooms = []
 
 io.of('/chat').on('connection', function (socket) {
   socket.on('join-chats', async userId => {
-    // let chats = await Chat.find({ $or: [{ userone: userId }, { usertwo: userId }] })
-    // // console.log(chats);
-    // for (const chat of chats) {
-    //   let exist = activeRooms.find(r => r.chatNumber === chat.chatNumber)
-    //   if (!exist) {
-    //     activeRooms.push({chatId: chat.chatId, users: [] })
-    //     if (userId.toString() === chat.userone.toString() || userId.toString() === chat.usertwo.toString()) {
-    //       console.log(chat.chatId);
-    //       socket.join(chat.chatId)
-    //       console.log(socket.rooms);
-    //     }
-    //   }
-
-    // }
     const rooms = Object.keys(socket.rooms);
     let exist = rooms.find(r => r.toString() === userId.toString())
     if (!exist) {
@@ -112,20 +87,6 @@ io.of('/chat').on('connection', function (socket) {
     }
   })
 
-
-  // socket.on("register", async chatId => {
-  //   // console.log(data);
-  //   let chat = await Chat.findOne({ chatId: chatId })
-
-  //   let room = activeRooms.find(r => r.chatId == data.chatId)
-
-  //   if (!room) {
-  //     activeRooms.push({ chatId: chat.chatId, users: [] })
-  //     room = activeRooms.find(r => r.chatId == chat.chatId)
-  //   }
-  //   return socket.emit("chat-ready", chat);
-
-  // });
 
 
 
@@ -156,7 +117,7 @@ io.of('/chat').on('connection', function (socket) {
         })
       }
     }
-    // activeRooms = activeRooms.filter(r => r.toString() !== userId.toString())
+
   });
   socket.on("message", async data => {
     let newmsg = { chatNumber: data.chatNumber, msg: data.msg, date: data.date, usertype: data.type, sender: data.sender, receiver: data.receiver }
@@ -175,17 +136,10 @@ io.of('/chat').on('connection', function (socket) {
 
 
 
-  socket.on('disconnecting', (data) => {
-    console.log('disconnecting');
-    const rooms = Object.keys(socket.rooms);
-    // activeRooms.push({chatNumber: chat.chatNumber, users: [] })
-
-    // the rooms array contains at least the socket ID
-  });
+  
 
 
   socket.on("new_friend_request", (receiver, user) => {
-
     socket.broadcast.to(receiver).emit('new_friend_request', user);
   });
 
@@ -196,13 +150,19 @@ io.of('/chat').on('connection', function (socket) {
     console.log(data);
     socket.broadcast.to(data.receiver).emit('friend_block_unblock', { active: data.active, blocker:data.blocker,chatNumber:data.chatNumber });
   });
+  socket.on("clear_chat", (data) => {
+    console.log(data);
+    socket.broadcast.to(data.receiver).emit('clear_chat', { chatNumber:data.chatNumber });
+  });
+  
 
   socket.on('disconnect', () => {
-    // console.log('disconnect');
-
-    // socket.rooms.size === 0
+  
   });
-
+  socket.on('disconnecting', (data) => {
+    console.log('disconnecting');
+    const rooms = Object.keys(socket.rooms);
+  });
 })
 
 app.use(

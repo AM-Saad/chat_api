@@ -31,7 +31,8 @@ const userSchema = new Schema({
     ],
     requests: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     chats: [{ type: Schema.Types.ObjectId, ref: 'Chat' }],
-    panding_requests: [{ type: Schema.Types.ObjectId, ref: 'User' }]
+    panding_requests: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    bio:String
 });
 
 

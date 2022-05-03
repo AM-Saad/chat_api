@@ -7,7 +7,8 @@ const router = express.Router();
 
 
 router.get("/me", isAuth, userController.me);
-router.put("/me", isAuth, userController.update_info);
+router.patch("/me", isAuth, userController.update_info);
+router.put("/me/image", isAuth, userController.change_image);
 router.put("/me/password", isAuth, userController.update_password);
 router.get("/friends", isAuth, userController.friends);
 router.delete("/friends/:id", isAuth, userController.remove_friend);

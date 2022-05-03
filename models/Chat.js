@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const autoIncrement = require('mongoose-auto-increment');
-const connection = mongoose.createConnection(`mongodb+srv://abdelrhman:ingodwetrust@onlineshop-zsiuv.mongodb.net/carryit`);
+const connection = mongoose.createConnection(`mongodb+srv://abdelrhman:ingodwetrust@onlineshop-zsiuv.mongodb.net/vue-chat-new`);
 autoIncrement.initialize(connection);
 
 
@@ -13,11 +13,12 @@ const chatSchema = new Schema({
     usertwo: { type: Schema.Types.ObjectId, ref: 'User' },
     conversation: [{
         usertype: Number,
-        msg: String,
+        msg: String,    
         sender: { type: Schema.Types.ObjectId, ref: 'OnModel' },
         receiver: { type: Schema.Types.ObjectId, ref: 'OnModel' },
         date: { time: String, date: String },
-        new_msgs: Number
+        hasImage: Boolean,
+        image: String,
     }],
     chat_status: { active: { type: Boolean, default: true }, user: { type: Schema.Types.ObjectId, ref: 'OnModel' } }
 });
